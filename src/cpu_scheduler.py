@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from collections import deque
 
 @dataclass
 class Process:
@@ -142,6 +143,78 @@ def simulate_sjf(original: List[Process]) -> Dict[str, Any]:
         **metrics,
     }
 
+def simulate_rr(original: List[Process], quantum: int) -> Dict[str, Any]:
+    """
+    Simula planificación ROUND ROBIN con quantum fijo.
+
+    Regresa:
+      - algorithm: nombre del algoritmo
+      - timeline: lista de segmentos (inicio, fin, pid | None)
+      - processes: métricas por proceso
+      - avg_waiting, avg_turnaround, avg_response
+    """
+    if quantum <= 0:
+        raise ValueError("El quantum debe ser un entero positivo")
+
+    # Copiamos procesos para no modificar los originales
+    processes = [Process(pid=p.pid, arrival=p.arrival, burst=p.burst, priority=p.priority) for p in original]
+    procs_sorted = sorted(processes, key=lambda p: (p.arrival, p.pid))
+
+    n = len(procs_sorted)
+    completed = 0
+    time = 0
+    i = 0  # índice de procesos ordenados por llegada
+    ready: deque[Process] = deque()
+    timeline: List[tuple[int, int, Optional[int]]] = []
+
+    while completed < n:
+        # Agregar a la cola listos todos los procesos que ya llegaron
+        while i < n and procs_sorted[i].arrival <= time:
+            ready.append(procs_sorted[i])
+            i += 1
+
+        if not ready:
+            # CPU libre hasta el siguiente arrival
+            next_arrival = procs_sorted[i].arrival
+            if time < next_arrival:
+                timeline.append((time, next_arrival, None))
+                time = next_arrival
+            continue
+
+        # Tomar el siguiente proceso de la cola circular
+        p = ready.popleft()
+
+        # Si es la primera vez que entra a CPU, registramos su start time
+        if p.start_time == -1:
+            p.start_time = time  
+
+        start = time
+        run_time = min(quantum, p.remaining)
+        time += run_time
+        p.remaining -= run_time
+
+        timeline.append((start, time, p.pid))
+
+        # Durante este quantum pudieron llegar procesos nuevos
+        while i < n and procs_sorted[i].arrival <= time:
+            ready.append(procs_sorted[i])
+            i += 1
+
+        if p.remaining == 0:
+            p.completion_time = time
+            completed += 1
+        else:
+            # Todavía le falta burst: va al final de la cola
+            ready.append(p)
+
+    metrics = compute_metrics(processes)
+
+    return {
+        "algorithm": f"Round Robin (q={quantum})",
+        "timeline": timeline,
+        **metrics,
+    }
+
 def demo_processes() -> List[Process]:
     """Conjunto de procesos de ejemplo para probar el simulador."""
     return [
@@ -181,3 +254,8 @@ if __name__ == "__main__":
     # SJF no expulsivo
     result_sjf = simulate_sjf(procs)
     print_results(result_sjf)
+    print("\n" + "=" * 60 + "\n")
+
+    # Round Robin con quantum 2
+    result_rr = simulate_rr(procs, quantum=2)
+    print_results(result_rr)
