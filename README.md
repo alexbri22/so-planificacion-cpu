@@ -10,16 +10,23 @@ Actualmente el simulador incluye:
   - **First-Come, First-Served (FCFS)**
   - **Shortest Job First (SJF) no expulsivo**
   - **Round Robin (RR)** con quantum configurable
+- Conjunto de escenarios de carga:
+  - Escenarios diseñados a mano (batch, llegadas escalonadas, carga interactiva).
+  - Escenarios pseudoaleatorios con semilla fija para garantizar reproducibilidad.
+- Módulo de experimentos que ejecuta todos los algoritmos sobre todos los escenarios
+  y genera un resumen de métricas promedio (tabla y archivo CSV).
 - Cálculo de métricas:
   - Tiempo de espera promedio
   - Tiempo de retorno (_turnaround_) promedio
   - Tiempo de respuesta promedio
-- Pruebas unitarias con `pytest` para validar el comportamiento de FCFS, SJF y RR.
+- Pruebas unitarias con `pytest` para validar:
+  - El comportamiento de FCFS, SJF y RR.
+  - La coherencia y reproducibilidad de los escenarios y del módulo de experimentos.
 
-Más adelante se agregará:
+Más adelante se podría agregar:
 
 - **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF).
-- Experimentos comparativos entre algoritmos con distintos escenarios de carga.
+- Más escenarios y visualizaciones (gráficas) sobre los resultados experimentales.
 
 ---
 
@@ -60,14 +67,21 @@ so-planificacion-cpu/
 ├─ tests/
 │  ├─ test_fcfs.py          # pruebas unitarias para FCFS
 │  ├─ test_sjf.py           # pruebas unitarias para SJF no expulsivo
-│  └─ test_rr.py            # pruebas unitarias para Round Robin
-├─ experiments/             # (futuro) escenarios y scripts de experimentos
+│  ├─ test_rr.py            # pruebas unitarias para Round Robin
+│  ├─ test_scenarios.py     # pruebas para escenarios (aleatorios y fijos)
+│  └─ test_experiments.py   # pruebas para el módulo de experimentos
+├─ experiments/
+│  ├─ __init__.py
+│  ├─ scenarios.py          # definición de escenarios de carga
+│  └─ run_experiments.py    # script que ejecuta y resume los experimentos
 ├─ data/
 │  ├─ inputs/               # (futuro) definiciones de procesos en CSV/JSON
-│  └─ results/              # (futuro) resultados de corridas y métricas
+│  └─ results/
+│     └─ summary.csv        # resumen de resultados promedio por escenario/algoritmo
 ├─ docs/                    # reporte escrito del proyecto
 ├─ README.md
 └─ .venv/                   # entorno virtual (no se versiona)
+
 ```
 
 ---
@@ -102,6 +116,33 @@ Para cada algoritmo se imprimen:
 Más adelante se añadirá una interfaz más general para seleccionar algoritmo,
 quantum y escenarios de entrada.
 
+## Ejecutar experimentos comparativos
+
+Para correr todos los algoritmos en todos los escenarios definidos y obtener
+un resumen de métricas promedio:
+
+```bash
+python3 -m experiments.run_experiments
+```
+
+Este comando:
+
+- Ejecuta FCFS, SJF y RR (con q = 2) en cada escenario.
+
+- Imprime en la terminal una tabla en formato Markdown con:
+
+- - tiempo de espera promedio,
+
+- - tiempo de turnaround promedio,
+
+- - tiempo de respuesta promedio.
+
+- Guarda los mismos datos en el archivo data/results/summary.csv, listo para
+  ser usado en el reporte o en herramientas externas (Excel, Python, etc.).
+
+Los escenarios pseudoaleatorios se generan con semillas fijas, por lo que los
+resultados son reproducibles entre ejecuciones.
+
 ---
 
 ## Pruebas
@@ -114,11 +155,11 @@ python3 -m pytest
 
 Actualmente se incluyen pruebas para:
 
-- Verificar el orden y las métricas de FCFS en un escenario de ejemplo.
+- Verificar el orden y las métricas de FCFS, SJF y Round Robin en escenarios específicos.
 
-- Verificar el comportamiento de SJF (orden de ejecución y métricas).
+- Comprobar que todos los escenarios de carga estén bien formados y que los escenarios aleatorios sean deterministas (misma semilla ⇒ mismos procesos).
 
-- Verificar la alternancia y las métricas de Round Robin para un caso con preempción.
+- Asegurar que el módulo de experimentos (`run_experiments`) genere una fila coherente por cada combinación escenario–algoritmo.
 
 ---
 
@@ -126,8 +167,8 @@ Actualmente se incluyen pruebas para:
 
 - Implementar SRTF (Shortest Remaining Time First) dentro del simulador.
 
-- Definir varios escenarios de carga (procesos cortos/largos, llegadas escalonadas, diferentes quantums).
+- Explorar distintos valores de quantum para Round Robin y comparar su impacto.
 
-- Generar tablas y gráficas comparando tiempos de espera, retorno y respuesta entre algoritmos.
+- Añadir visualizaciones (gráficas) a partir de data/results/summary.csv.
 
-- Documentar resultados y conclusiones en el reporte final (docs/).
+- Extender el análisis a más métricas (por ejemplo, número de cambios de contexto).
