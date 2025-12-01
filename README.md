@@ -66,7 +66,7 @@ source .venv/bin/activate   # En Windows: .venv\Scripts\activate
 
 ## Estructura del proyecto
 
-````text
+```text
 so-planificacion-cpu/
 ├─ src/
 │  ├─ __init__.py
@@ -96,6 +96,7 @@ so-planificacion-cpu/
 ├─ docs/                    # reporte escrito del proyecto
 ├─ README.md
 └─ .venv/                   # entorno virtual (no se versiona)
+```
 
 ---
 
@@ -107,7 +108,7 @@ Desde la raíz del proyecto, con el entorno virtual activado:
 
 ```bash
 python3 src/cpu_scheduler.py
-````
+```
 
 El programa ejecuta un conjunto de procesos de ejemplo y muestra los resultados
 para:
