@@ -92,6 +92,56 @@ def simulate_fcfs(original: List[Process]) -> Dict[str, Any]:
         **metrics,
     }
 
+def simulate_sjf(original: List[Process]) -> Dict[str, Any]:
+    """
+    Simula planificación SHORTEST JOB FIRST no expulsiva.
+
+    Regresa:
+      - algorithm: nombre del algoritmo
+      - timeline: lista de segmentos (inicio, fin, pid | None)
+      - processes: métricas por proceso
+      - avg_waiting, avg_turnaround, avg_response
+    """
+
+    # Copiamos solo los campos de entrada para no modificar los originales
+    processes = [Process(pid=p.pid, arrival=p.arrival, burst=p.burst, priority=p.priority) for p in original]
+
+    n = len(processes)
+    completed = 0
+    time = 0
+    timeline: List[tuple[int, int, Optional[int]]] = []
+
+    # Mientras haya procesos sin completar
+    while completed < n:
+        # Procesos listos
+        ready = [p for p in processes if p.arrival <= time and p.completion_time == -1]
+
+        if not ready:
+            # No hay procesos listos: CPU libre hasta el siguiente arrival
+            next_arrival = min(p.arrival for p in processes if p.completion_time == -1)
+            if time < next_arrival:
+                timeline.append((time, next_arrival, None))
+                time = next_arrival
+            continue
+
+        # Elegimos el proceso con ráfaga más corta
+        p = min(ready, key=lambda x: (x.burst, x.arrival, x.pid))
+
+        p.start_time = time
+        time += p.burst
+        p.completion_time = time
+        completed += 1
+
+        timeline.append((p.start_time, p.completion_time, p.pid))
+
+    metrics = compute_metrics(processes)
+
+    return {
+        "algorithm": "SJF (non-preemptive)",
+        "timeline": timeline,
+        **metrics,
+    }
+
 def demo_processes() -> List[Process]:
     """Conjunto de procesos de ejemplo para probar el simulador."""
     return [
@@ -122,5 +172,12 @@ def print_results(result: Dict[str, Any]) -> None:
 
 if __name__ == "__main__":
     procs = demo_processes()
+
+    # FCFS
     result_fcfs = simulate_fcfs(procs)
     print_results(result_fcfs)
+    print("\n" + "=" * 60 + "\n")
+
+    # SJF no expulsivo
+    result_sjf = simulate_sjf(procs)
+    print_results(result_sjf)

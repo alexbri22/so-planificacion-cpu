@@ -1,5 +1,4 @@
 import pytest
-
 from src.cpu_scheduler import Process, simulate_fcfs
 
 
