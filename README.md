@@ -25,10 +25,7 @@ Actualmente el simulador incluye:
   - La coherencia y reproducibilidad de los escenarios y del módulo de experimentos.
 - Un comparador interactivo en el simulador principal que calcula un **ranking de algoritmos**
   (1 = mejor) por cada métrica y un **score global** (suma de rangos).
-
-Más adelante se podría agregar:
-
-- Más escenarios y visualizaciones (gráficas) sobre los resultados experimentales.
+- Un script de visualización que genera **gráficas de barras** por escenario a partir de `data/results/summary.csv`.
 
 ---
 
@@ -36,7 +33,8 @@ Más adelante se podría agregar:
 
 - Python 3.12 (o compatible)
 - Entorno virtual (`venv`) recomendado
-- `pytest` solo si se desea ejecutar las pruebas automatizadas
+- `pytest` si se desean ejecutar las pruebas automatizadas
+- `matplotlib` solo si se desean generar las gráficas a partir de los resultados
 
 ---
 
@@ -49,23 +47,30 @@ git clone https://github.com/alexbri22/so-planificacion-cpu.git
 cd so-planificacion-cpu
 ```
 
+Instalar `pytest` y `matplotlib` si se desean ejecutar pruebas y gráficas:
+
+```bash
+python3 -m pip install pytest matplotlib
+```
+
 ---
 
 ## Crear y activar un entorno virtual (recomendado):
 
 ```bash
-python3 -m pip install pytest
+python3 -m venv .venv
+source .venv/bin/activate   # En Windows: .venv\Scripts\activate
 ```
 
 ---
 
 ## Estructura del proyecto
 
-```text
+````text
 so-planificacion-cpu/
 ├─ src/
 │  ├─ __init__.py
-│  └─ cpu_scheduler.py      # modelo de proceso, algoritmos y utilidades
+│  └─ cpu_scheduler.py      # modelo de proceso, algoritmos, métricas y comparador
 ├─ tests/
 │  ├─ test_fcfs.py          # pruebas unitarias para FCFS
 │  ├─ test_sjf.py           # pruebas unitarias para SJF no expulsivo
@@ -76,15 +81,21 @@ so-planificacion-cpu/
 ├─ experiments/
 │  ├─ __init__.py
 │  ├─ scenarios.py          # definición de escenarios de carga
-│  └─ run_experiments.py    # script que ejecuta y resume los experimentos
+│  ├─ run_experiments.py    # script que ejecuta y resume los experimentos
+│  └─ plot_results.py       # genera gráficas a partir de data/results/summary.csv
 ├─ data/
 │  ├─ inputs/               # (futuro) definiciones de procesos en CSV/JSON
 │  └─ results/
-│     └─ summary.csv        # resumen de resultados promedio por escenario/algoritmo
+│     ├─ summary.csv        # resumen de resultados promedio por escenario/algoritmo
+│     └─ plots/             # gráficas generadas por plot_results.py
+│        ├─ batch_jobs.png
+│        ├─ staggered_arrivals.png
+│        ├─ interactive_like.png
+│        ├─ random_light_load.png
+│        └─ random_heavy_load.png
 ├─ docs/                    # reporte escrito del proyecto
 ├─ README.md
 └─ .venv/                   # entorno virtual (no se versiona)
-```
 
 ---
 
@@ -96,7 +107,7 @@ Desde la raíz del proyecto, con el entorno virtual activado:
 
 ```bash
 python3 src/cpu_scheduler.py
-```
+````
 
 El programa ejecuta un conjunto de procesos de ejemplo y muestra los resultados
 para:
