@@ -131,11 +131,11 @@ Este comando:
 
 - Imprime en la terminal una tabla en formato Markdown con:
 
-- - tiempo de espera promedio,
+  - tiempo de espera promedio,
 
-- - tiempo de turnaround promedio,
+  - tiempo de turnaround promedio,
 
-- - tiempo de respuesta promedio.
+  - tiempo de respuesta promedio.
 
 - Guarda los mismos datos en el archivo data/results/summary.csv, listo para
   ser usado en el reporte o en herramientas externas (Excel, Python, etc.).
