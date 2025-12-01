@@ -10,6 +10,7 @@ Actualmente el simulador incluye:
   - **First-Come, First-Served (FCFS)**
   - **Shortest Job First (SJF) no expulsivo**
   - **Round Robin (RR)** con quantum configurable
+  - **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF).
 - Conjunto de escenarios de carga:
   - Escenarios diseñados a mano (batch, llegadas escalonadas, carga interactiva).
   - Escenarios pseudoaleatorios con semilla fija para garantizar reproducibilidad.
@@ -20,12 +21,11 @@ Actualmente el simulador incluye:
   - Tiempo de retorno (_turnaround_) promedio
   - Tiempo de respuesta promedio
 - Pruebas unitarias con `pytest` para validar:
-  - El comportamiento de FCFS, SJF y RR.
+  - El comportamiento de FCFS, SJF, RR y SRTF.
   - La coherencia y reproducibilidad de los escenarios y del módulo de experimentos.
 
 Más adelante se podría agregar:
 
-- **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF).
 - Más escenarios y visualizaciones (gráficas) sobre los resultados experimentales.
 
 ---
@@ -68,6 +68,7 @@ so-planificacion-cpu/
 │  ├─ test_fcfs.py          # pruebas unitarias para FCFS
 │  ├─ test_sjf.py           # pruebas unitarias para SJF no expulsivo
 │  ├─ test_rr.py            # pruebas unitarias para Round Robin
+│  ├─ test_srtf.py          # pruebas unitarias para SRTF
 │  ├─ test_scenarios.py     # pruebas para escenarios (aleatorios y fijos)
 │  └─ test_experiments.py   # pruebas para el módulo de experimentos
 ├─ experiments/
@@ -105,6 +106,8 @@ para:
 
 - **Round Robin** (con un quantum configurado en el código, por ejemplo q = 2)
 
+- **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF).
+
 Para cada algoritmo se imprimen:
 
 - Métricas por proceso (tiempos de inicio, fin, espera, turnaround y respuesta).
@@ -137,8 +140,7 @@ Este comando:
 
   - tiempo de respuesta promedio.
 
-- Guarda los mismos datos en el archivo data/results/summary.csv, listo para
-  ser usado en el reporte o en herramientas externas (Excel, Python, etc.).
+- Guarda los mismos datos en el archivo data/results/summary.csv, listo para ser usado en el reporte o en herramientas externas (Excel, Python, etc.).
 
 Los escenarios pseudoaleatorios se generan con semillas fijas, por lo que los
 resultados son reproducibles entre ejecuciones.
@@ -155,7 +157,7 @@ python3 -m pytest
 
 Actualmente se incluyen pruebas para:
 
-- Verificar el orden y las métricas de FCFS, SJF y Round Robin en escenarios específicos.
+- Verificar el orden y las métricas de FCFS, SJF, Round Robin y SRTF en escenarios específicos.
 
 - Comprobar que todos los escenarios de carga estén bien formados y que los escenarios aleatorios sean deterministas (misma semilla ⇒ mismos procesos).
 
@@ -164,8 +166,6 @@ Actualmente se incluyen pruebas para:
 ---
 
 ## Trabajo futuro
-
-- Implementar SRTF (Shortest Remaining Time First) dentro del simulador.
 
 - Explorar distintos valores de quantum para Round Robin y comparar su impacto.
 
