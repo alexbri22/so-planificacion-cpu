@@ -1,7 +1,7 @@
 from typing import Callable, List, Dict, Any
 import csv
 from pathlib import Path
-from src.cpu_scheduler import Process, simulate_fcfs, simulate_sjf, simulate_rr
+from src.cpu_scheduler import Process, simulate_fcfs, simulate_sjf, simulate_rr, simulate_srtf
 from experiments.scenarios import all_scenarios, Scenario
 
 AlgorithmFn = Callable[[List[Process]], Dict[str, Any]]
@@ -13,6 +13,7 @@ def get_algorithms() -> List[tuple[str, AlgorithmFn]]:
     return [
         ("FCFS", simulate_fcfs),
         ("SJF", simulate_sjf),
+        ("SRTF", simulate_srtf),
         ("RR_q2", lambda procs: simulate_rr(procs, quantum=2)),
     ]
 

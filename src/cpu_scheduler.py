@@ -215,6 +215,82 @@ def simulate_rr(original: List[Process], quantum: int) -> Dict[str, Any]:
         **metrics,
     }
 
+def simulate_srtf(original: List[Process]) -> Dict[str, Any]:
+    """
+    Simula Shortest Remaining Time First (SRTF), versión expulsiva de SJF.
+
+    Regresa:
+      - algorithm: nombre del algoritmo
+      - timeline: lista de segmentos (inicio, fin, pid | None)
+      - processes: métricas por proceso
+      - avg_waiting, avg_turnaround, avg_response
+    """
+    # Clonamos procesos para no modificar los originales
+    procs = [Process(pid=p.pid, arrival=p.arrival, burst=p.burst, priority=p.priority) for p in original]
+
+    n = len(procs)
+    finished = 0
+    timeline: List[tuple[int, int, Optional[int]]] = []
+
+    if n == 0:
+        metrics = compute_metrics(procs)
+        return {"algorithm": "SRTF", "timeline": timeline, **metrics}
+
+    # Empezamos en el primer tiempo de llegada
+    time = min(p.arrival for p in procs)
+
+    current: Optional[Process] = None
+    segment_start: Optional[int] = None
+
+    while finished < n:
+        # Procesos listos con ráfaga pendiente
+        ready = [p for p in procs if p.arrival <= time and p.remaining > 0]
+
+        if not ready:
+            # CPU libre hasta el siguiente arrival
+            next_arrival = min(p.arrival for p in procs if p.remaining > 0)
+            if time < next_arrival:
+                timeline.append((time, next_arrival, None))
+                time = next_arrival
+            continue
+
+        # Elegimos el de menor tiempo restante (empates: arrival, pid)
+        ready.sort(key=lambda p: (p.remaining, p.arrival, p.pid))
+        chosen = ready[0]
+
+        # Si cambiamos de proceso, cerramos el segmento anterior
+        if chosen is not current:
+            if current is not None and segment_start is not None:
+                timeline.append((segment_start, time, current.pid))
+            current = chosen
+            segment_start = time
+
+            # Registrar primer uso de CPU
+            if current.start_time == -1:
+                current.start_time = time
+
+        # Ejecutamos 1 unidad de tiempo
+        current.remaining -= 1
+        time += 1
+
+        # Si terminó, fijamos completion_time y cerramos segmento
+        if current.remaining == 0:
+            current.completion_time = time
+            finished += 1
+            if segment_start is not None:
+                timeline.append((segment_start, time, current.pid))
+            current = None
+            segment_start = None
+
+    # Calculamos las metricas
+    metrics = compute_metrics(procs)
+
+    return {
+        "algorithm": "SRTF",
+        "timeline": timeline,
+        **metrics,
+    }
+
 def demo_processes() -> List[Process]:
     """Conjunto de procesos de ejemplo para probar el simulador."""
     return [
@@ -244,18 +320,28 @@ def print_results(result: Dict[str, Any]) -> None:
         print(f"  [{start:2d}, {end:2d}) -> {label}")
 
 if __name__ == "__main__":
-    procs = demo_processes()
+    example_processes = [
+        Process(pid="P1", arrival=0, burst=8),
+        Process(pid="P2", arrival=1, burst=4),
+        Process(pid="P3", arrival=2, burst=2),
+    ]
 
-    # FCFS
-    result_fcfs = simulate_fcfs(procs)
-    print_results(result_fcfs)
-    print("\n" + "=" * 60 + "\n")
+    algorithms = [
+        ("FCFS", lambda procs: simulate_fcfs(procs)),
+        ("SJF", lambda procs: simulate_sjf(procs)),
+        ("SRTF", lambda procs: simulate_srtf(procs)), 
+        ("RR_q2", lambda procs: simulate_rr(procs, quantum=2)),
+    ]
 
-    # SJF no expulsivo
-    result_sjf = simulate_sjf(procs)
-    print_results(result_sjf)
-    print("\n" + "=" * 60 + "\n")
-
-    # Round Robin con quantum 2
-    result_rr = simulate_rr(procs, quantum=2)
-    print_results(result_rr)
+    for name, algo in algorithms:
+        print("=" * 50)
+        print(f"Algoritmo: {name}")
+        result = algo(example_processes)
+        # asumiendo que ya tienes algo como print_results/print_summary
+        print(f"Tiempo de espera promedio:     {result['avg_waiting']:.2f}")
+        print(f"Tiempo de turnaround promedio: {result['avg_turnaround']:.2f}")
+        print(f"Tiempo de respuesta promedio:  {result['avg_response']:.2f}")
+        print("Timeline:")
+        for start, end, pid in result["timeline"]:
+            print(f"  {start:2d} - {end:2d}: {pid}")
+        print()
