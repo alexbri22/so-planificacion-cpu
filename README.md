@@ -9,8 +9,8 @@ Actualmente el simulador incluye:
 - Implementación de algoritmos de planificación:
   - **First-Come, First-Served (FCFS)**
   - **Shortest Job First (SJF) no expulsivo**
+  - **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF)
   - **Round Robin (RR)** con quantum configurable
-  - **Shortest Remaining Time First (SRTF)** (versión expulsiva de SJF).
 - Conjunto de escenarios de carga:
   - Escenarios diseñados a mano (batch, llegadas escalonadas, carga interactiva).
   - Escenarios pseudoaleatorios con semilla fija para garantizar reproducibilidad.
@@ -21,8 +21,10 @@ Actualmente el simulador incluye:
   - Tiempo de retorno (_turnaround_) promedio
   - Tiempo de respuesta promedio
 - Pruebas unitarias con `pytest` para validar:
-  - El comportamiento de FCFS, SJF, RR y SRTF.
+  - El comportamiento de FCFS, SJF, SRTF y RR.
   - La coherencia y reproducibilidad de los escenarios y del módulo de experimentos.
+- Un comparador interactivo en el simulador principal que calcula un **ranking de algoritmos**
+  (1 = mejor) por cada métrica y un **score global** (suma de rangos).
 
 Más adelante se podría agregar:
 
@@ -82,7 +84,6 @@ so-planificacion-cpu/
 ├─ docs/                    # reporte escrito del proyecto
 ├─ README.md
 └─ .venv/                   # entorno virtual (no se versiona)
-
 ```
 
 ---
@@ -116,8 +117,19 @@ Para cada algoritmo se imprimen:
 
 - Una línea de tiempo (timeline) con los intervalos de ejecución de cada proceso.
 
-Más adelante se añadirá una interfaz más general para seleccionar algoritmo,
-quantum y escenarios de entrada.
+Al final, el simulador muestra también una tabla comparativa:
+
+- ranking por tiempo de espera promedio,
+
+- ranking por tiempo de turnaround promedio,
+
+- ranking por tiempo de respuesta promedio,
+
+- y un score global (suma de rangos; menor score = mejor algoritmo en ese escenario).
+
+Esto permite ver rápidamente qué algoritmo se comporta mejor en el conjunto de procesos de ejemplo.
+
+Más adelante se podría añadir una interfaz más general para seleccionar algoritmo, quantum y escenarios de entrada.
 
 ## Ejecutar experimentos comparativos
 
@@ -130,7 +142,7 @@ python3 -m experiments.run_experiments
 
 Este comando:
 
-- Ejecuta FCFS, SJF y RR (con q = 2) en cada escenario.
+- Ejecuta FCFS, SJF, SRTF y RR (q = 2) en cada escenario.
 
 - Imprime en la terminal una tabla en formato Markdown con:
 
@@ -157,7 +169,7 @@ python3 -m pytest
 
 Actualmente se incluyen pruebas para:
 
-- Verificar el orden y las métricas de FCFS, SJF, Round Robin y SRTF en escenarios específicos.
+- Verificar el orden y las métricas de FCFS, SJF, SRTF y Round Robin en escenarios específicos.
 
 - Comprobar que todos los escenarios de carga estén bien formados y que los escenarios aleatorios sean deterministas (misma semilla ⇒ mismos procesos).
 
@@ -171,4 +183,4 @@ Actualmente se incluyen pruebas para:
 
 - Añadir visualizaciones (gráficas) a partir de data/results/summary.csv.
 
-- Extender el análisis a más métricas (por ejemplo, número de cambios de contexto).
+- Extender el análisis a más métricas (por ejemplo, número de cambios de contexto o utilización de la CPU).

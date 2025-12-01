@@ -319,17 +319,77 @@ def print_results(result: Dict[str, Any]) -> None:
         label = f"P{pid}" if pid is not None else "IDLE"
         print(f"  [{start:2d}, {end:2d}) -> {label}")
 
-if __name__ == "__main__":
-    example_processes = [
-        Process(pid="P1", arrival=0, burst=8),
-        Process(pid="P2", arrival=1, burst=4),
-        Process(pid="P3", arrival=2, burst=2),
-    ]
+def compare_algorithms(processes: List[Process]) -> None:
+    """
+    Ejecuta todos los algoritmos sobre el mismo conjunto de procesos y muestra un ranking por métricas (espera, turnaround, respuesta) y un ranking global (suma de rangos).
+    """
 
     algorithms = [
         ("FCFS", lambda procs: simulate_fcfs(procs)),
         ("SJF", lambda procs: simulate_sjf(procs)),
-        ("SRTF", lambda procs: simulate_srtf(procs)), 
+        ("SRTF", lambda procs: simulate_srtf(procs)),
+        ("RR_q2", lambda procs: simulate_rr(procs, quantum=2)),
+    ]
+
+    # Ejecutar todos los algoritmos
+    results: dict[str, dict[str, float]] = {}
+    for name, fn in algorithms:
+        res = fn(processes)
+        results[name] = {
+            "avg_waiting": res["avg_waiting"],
+            "avg_turnaround": res["avg_turnaround"],
+            "avg_response": res["avg_response"],
+        }
+
+    metrics = ["avg_waiting", "avg_turnaround", "avg_response"]
+
+    # Asignar rangos por métrica (1 = mejor, es decir menor valor)
+    for metric in metrics:
+        ordered = sorted(results.items(), key=lambda item: item[1][metric])
+        for rank, (name, _) in enumerate(ordered, start=1):
+            results[name][f"rank_{metric}"] = rank
+
+    # Ranking global: suma de rangos individuales
+    for name in results:
+        score = sum(results[name][f"rank_{m}"] for m in metrics)
+        results[name]["score_global"] = score
+
+    # Mostrar tabla
+    print("\n=== Comparación de algoritmos (1 = mejor) ===\n")
+    header = (
+        f"{'Algoritmo':<12}"
+        f"{'Esp. prom.':>12} {'Rank':>6}"
+        f"{'Turn. prom.':>14} {'Rank':>6}"
+        f"{'Resp. prom.':>13} {'Rank':>6}"
+        f"{'Score':>8}"
+    )
+    print(header)
+    print("-" * len(header))
+
+    # Ordenamos por score global (menor = mejor)
+    ordered_global = sorted(results.items(), key=lambda item: item[1]["score_global"])
+    for name, data in ordered_global:
+        print(
+            f"{name:<12}"
+            f"{data['avg_waiting']:>12.2f} {data['rank_avg_waiting']:>6}"
+            f"{data['avg_turnaround']:>14.2f} {data['rank_avg_turnaround']:>6}"
+            f"{data['avg_response']:>13.2f} {data['rank_avg_response']:>6}"
+            f"{data['score_global']:>8}"
+        )
+    print()
+
+if __name__ == "__main__":
+    example_processes = [
+        Process(pid=1, arrival=0, burst=8),
+        Process(pid=2, arrival=1, burst=4),
+        Process(pid=3, arrival=2, burst=2),
+    ]
+
+    # Primero mostramos resultados detallados de cada algoritmo
+    algorithms = [
+        ("FCFS", lambda procs: simulate_fcfs(procs)),
+        ("SJF", lambda procs: simulate_sjf(procs)),
+        ("SRTF", lambda procs: simulate_srtf(procs)),
         ("RR_q2", lambda procs: simulate_rr(procs, quantum=2)),
     ]
 
@@ -337,11 +397,14 @@ if __name__ == "__main__":
         print("=" * 50)
         print(f"Algoritmo: {name}")
         result = algo(example_processes)
-        # asumiendo que ya tienes algo como print_results/print_summary
         print(f"Tiempo de espera promedio:     {result['avg_waiting']:.2f}")
         print(f"Tiempo de turnaround promedio: {result['avg_turnaround']:.2f}")
         print(f"Tiempo de respuesta promedio:  {result['avg_response']:.2f}")
         print("Timeline:")
         for start, end, pid in result["timeline"]:
-            print(f"  {start:2d} - {end:2d}: {pid}")
+            label = f"P{pid}" if pid is not None else "IDLE"
+            print(f"  {start:2d} - {end:2d}: {label}")
         print()
+
+    # Luego mostramos el ranking comparado
+    compare_algorithms(example_processes)
