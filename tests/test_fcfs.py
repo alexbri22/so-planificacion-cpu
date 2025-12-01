@@ -9,7 +9,6 @@ def make_procs():
         Process(pid=3, arrival=4, burst=1),
     ]
 
-
 def test_fcfs_order_and_times():
     procs = make_procs()
     result = simulate_fcfs(procs)

@@ -1,0 +1,16 @@
+scenario,algorithm,avg_waiting,avg_turnaround,avg_response
+batch_jobs,FCFS,5.5,13.0,5.5
+batch_jobs,SJF,5.5,13.0,5.5
+batch_jobs,RR_q2,8.0,15.5,3.0
+staggered_arrivals,FCFS,5.25,9.25,5.25
+staggered_arrivals,SJF,4.25,8.25,4.25
+staggered_arrivals,RR_q2,4.5,8.5,1.25
+interactive_like,FCFS,4.75,8.25,4.75
+interactive_like,SJF,4.0,7.5,4.0
+interactive_like,RR_q2,7.0,10.5,2.0
+random_light_load,FCFS,4.4,6.8,4.4
+random_light_load,SJF,3.6,6.0,3.6
+random_light_load,RR_q2,3.2,5.6,2.0
+random_heavy_load,FCFS,28.9,36.7,28.9
+random_heavy_load,SJF,22.1,29.9,22.1
+random_heavy_load,RR_q2,43.8,51.6,7.8
