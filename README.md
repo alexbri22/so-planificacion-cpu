@@ -6,16 +6,17 @@ Implementa un simulador de planificación de CPU para comparar distintos algorit
 Actualmente el simulador incluye:
 
 - Modelo sencillo de proceso (`pid`, tiempo de llegada, ráfaga de CPU, prioridad).
-- Implementación de **First-Come, First-Served (FCFS)**.
+- Implementación de algoritmos de planificación:
+  - **First-Come, First-Served (FCFS)**
+  - **Shortest Job First (SJF) no expulsivo**
 - Cálculo de métricas:
   - Tiempo de espera promedio
   - Tiempo de retorno (_turnaround_) promedio
   - Tiempo de respuesta promedio
-- Pruebas unitarias básicas con `pytest` para validar el comportamiento de FCFS.
+- Pruebas unitarias básicas con `pytest` para validar el comportamiento de FCFS y SJF.
 
 Más adelante se agregarán:
 
-- **Shortest Job First (SJF)** no expulsivo
 - **Shortest Remaining Time First (SRTF)**
 - **Round Robin (RR)** con quantum configurable
 - Experimentos comparativos entre algoritmos
