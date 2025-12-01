@@ -1,0 +1,126 @@
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+
+@dataclass
+class Process:
+    """
+    Modelo de proceso para la simulación de CPU.
+    """
+    pid: int # identificador del proceso
+    arrival: int # tiempo de llegada
+    burst: int # ráfaga total de CPU
+    priority: int = 0 # prioridad
+
+    start_time: int = field(default=-1) # momento en que el proceso empieza a ejecutarse por primera vez
+    completion_time: int = field(default=-1) # momento en que termina el proceso
+    remaining: int = field(init=False) # tiempo de CPU que le falta al proceso
+
+    def __post_init__(self) -> None:
+        # Al inicio, todo el burst está pendiente
+        self.remaining = self.burst
+
+def compute_metrics(processes: List[Process]) -> Dict[str, Any]:
+    """
+    Funcion para calcular metricas de los procesos a partir de su start_time y completion_time.
+    Calcula waiting, turnaround y response, y también los promedios.
+    """
+    results = []
+    total_wait = total_turn = total_resp = 0
+
+    for p in processes:
+        turnaround = p.completion_time - p.arrival # T_i
+        waiting = turnaround - p.burst # W_i
+        response = p.start_time - p.arrival # R_i
+
+        total_wait += waiting
+        total_turn += turnaround
+        total_resp += response
+
+        results.append({
+            "pid": p.pid,
+            "arrival": p.arrival,
+            "burst": p.burst,
+            "start": p.start_time,
+            "completion": p.completion_time,
+            "waiting": waiting,
+            "turnaround": turnaround,
+            "response": response,
+        })
+
+    n = len(processes)
+    return {
+        "processes": results,
+        "avg_waiting": total_wait / n,
+        "avg_turnaround": total_turn / n,
+        "avg_response": total_resp / n,
+    }
+
+def simulate_fcfs(original: List[Process]) -> Dict[str, Any]:
+    """
+    Simula el algoritmo de planificación FIRST-COME, FIRST-SERVED.
+
+    Regresa:
+      - algorithm: nombre del algoritmo
+      - timeline: lista de segmentos (inicio, fin, pid | None)
+      - processes: métricas por proceso
+      - avg_waiting, avg_turnaround, avg_response
+    """
+
+    # Creamos una copia para no modificar la lista original y ordenamos por tiempo de llegada
+    processes = [Process(pid=p.pid, arrival=p.arrival, burst=p.burst, priority=p.priority) for p in original]
+    processes = sorted(processes, key=lambda p: (p.arrival, p.pid))
+
+    time = 0
+    timeline: List[tuple[int, int, Optional[int]]] = []
+
+    for p in processes:
+        # Verificamos si la CPU está libre hasta que llegua el proceso
+        if time < p.arrival:
+            timeline.append((time, p.arrival, None)) 
+            time = p.arrival
+
+        p.start_time = time
+        time += p.burst
+        p.completion_time = time
+        timeline.append((p.start_time, p.completion_time, p.pid))
+
+    metrics = compute_metrics(processes)
+
+    return {
+        "algorithm": "FCFS",
+        "timeline": timeline,
+        **metrics,
+    }
+
+def demo_processes() -> List[Process]:
+    """Conjunto de procesos de ejemplo para probar el simulador."""
+    return [
+        Process(pid=1, arrival=0, burst=5),
+        Process(pid=2, arrival=2, burst=3),
+        Process(pid=3, arrival=4, burst=1),
+    ]
+
+def print_results(result: Dict[str, Any]) -> None:
+    """Imprime los resultados de forma legible."""
+    print(f"=== {result['algorithm']} ===")
+    print("\nProcesos:")
+    for p in result["processes"]:
+        print(
+            f"P{p['pid']}: llegada={p['arrival']}, burst={p['burst']}, "
+            f"inicio={p['start']}, fin={p['completion']}, "
+            f"espera={p['waiting']}, turnaround={p['turnaround']}, "
+            f"respuesta={p['response']}"
+        )
+    print("\nPromedios:")
+    print(f"  Espera    : {result['avg_waiting']:.2f}")
+    print(f"  Turnaround: {result['avg_turnaround']:.2f}")
+    print(f"  Respuesta : {result['avg_response']:.2f}")
+    print("\nTimeline:")
+    for start, end, pid in result["timeline"]:
+        label = f"P{pid}" if pid is not None else "IDLE"
+        print(f"  [{start:2d}, {end:2d}) -> {label}")
+
+if __name__ == "__main__":
+    procs = demo_processes()
+    result_fcfs = simulate_fcfs(procs)
+    print_results(result_fcfs)
