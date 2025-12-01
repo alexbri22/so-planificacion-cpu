@@ -192,6 +192,4 @@ Actualmente se incluyen pruebas para:
 
 - Explorar distintos valores de quantum para Round Robin y comparar su impacto.
 
-- Añadir visualizaciones (gráficas) a partir de data/results/summary.csv.
-
 - Extender el análisis a más métricas (por ejemplo, número de cambios de contexto o utilización de la CPU).
